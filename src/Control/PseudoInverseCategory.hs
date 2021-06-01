@@ -2,6 +2,8 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
 
 
 {-|
@@ -28,7 +30,8 @@ import           Control.Category            (Category (..))
 import           Data.Bifunctor              (bimap, first, second)
 import           Data.Functor.Identity       (Identity (..))
 import           Data.Tuple                  (swap)
-import           Shpadoinkle.Continuation    (Continuation (..), contIso)
+import           Shpadoinkle.Continuation    (Continuation (..), contIso, mapC)
+import           Shpadoinkle.Core            (Html (..), Prop (..))
 import           Prelude                     hiding (id, (.))
 
 
@@ -199,3 +202,40 @@ instance Applicative m => F.Functor EndoIso EndoIso (Continuation m) where
   map :: EndoIso a b -> EndoIso  (Continuation m a) (Continuation m b)
   map (EndoIso f g h) =
     EndoIso (Continuation f . const . pure) (contIso g h) (contIso h g)
+
+
+-- | @Html m@ is a functor in the EndoIso category, where the objects are
+--   types and the morphisms are EndoIsos.
+instance Applicative m => F.Functor EndoIso EndoIso (Html m) where
+  map (EndoIso f g i) = EndoIso (mapC . piapply $ map' (piendo f))
+                                (mapC . piapply $ map' (piiso g i))
+                                (mapC . piapply $ map' (piiso i g))
+    where map' :: EndoIso a b -> EndoIso (Continuation m a) (Continuation m b)
+          map' = F.map
+  {-# INLINE map #-}
+
+
+-- | Prop is a functor in the EndoIso category, where the objects are types
+--  and the morphisms are EndoIsos.
+instance Applicative m => F.Functor EndoIso EndoIso (Prop m) where
+  map :: forall a b. EndoIso a b -> EndoIso (Prop m a) (Prop m b)
+  map f = EndoIso id mapFwd mapBack
+    where f' :: EndoIso (Continuation m a) (Continuation m b)
+          f' = F.map f
+
+          mapFwd :: Prop m a -> Prop m b
+          mapFwd (PData t)     = PData t
+          mapFwd (PText t)     = PText t
+          mapFwd (PFlag t)     = PFlag t
+          mapFwd (PListener g) = PListener $ \r e -> piapply f' <$> g r e
+          mapFwd (PPotato p)   = PPotato $ fmap (fmap (piapply f')) . p
+
+
+          mapBack :: Prop m b -> Prop m a
+          mapBack (PData t)     = PData t
+          mapBack (PText t)     = PText t
+          mapBack (PFlag t)     = PFlag t
+          mapBack (PListener g) = PListener $ \r e -> piapply (piinverse f') <$> g r e
+          mapBack (PPotato b)   = PPotato $ fmap (fmap (piapply (piinverse f'))) . b
+  {-# INLINE map #-}
+

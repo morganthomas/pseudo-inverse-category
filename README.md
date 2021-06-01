@@ -53,7 +53,7 @@ Let's go through these one by one.
  * There is an `instance HasHaskFunctors EndoIso` to express the fact that all endofunctors of `Hask` can be mapped to endofunctors of `EndoIso` in a way which constitutes a functor from the monoidal category of endofunctors of `Hask` to the monoidal category of endofunctors of `EndoIso`.
  * There are instances `PseudoInverseCategory EndoIso` and `PIArrow EndoIso` to express the fact that `EndoIso` is a pseudo-inverse category of arrows.
 
-Finally, `Control.PseudoInverseCategory` contains this instance:
+In addition, `Control.PseudoInverseCategory` contains this instance:
 
 ```Haskell
 instance Applicative m => Control.Categorical.Functor EndoIso EndoIso (Continuation m)
@@ -66,3 +66,12 @@ Let's look at why this is the case. Why are Shpadoinkle continuations not endofu
 Why is it not possible to define `fmap` for Shpadoinkle continuations? To change the type of a continuation, i.e. to go from `Continuation m a` to `Continuation m b`, we require a lens. In other words we require a setter function `a -> b -> b` and a getter function `b -> a`. These are in other words the inputs to `liftC` which yield a function `Continuation m a -> Continuation m b`. A morphism in `Hask`, i.e. a function `a -> b`, is not enough to change the type of a continuation because it only tells us how to go one way and not how to go back in the other direction. 
 
 An `EndoIso` contains enough information to change the type of a continuation. An `EndoIso` consists of an endomorphism and an isomorphism. We can change an isomorphism from `a` to `b` to an isomorphism from `Continuation m a` to `Continuation m b` using `contIso` defined in `Shpadoinkle.Continuation`. We can change an endomorphism of `a` to an endomorphism of `Continuation m a` using the following function: `Continuation f . const . pure`. In other words, given a function `f :: a -> a` and a continuation `g :: Continuation m a`, we obtain a `Continuation m a` by prepending the pure updating function `f` to the continuation `g`. By combining these two methods, one for changing the type of a continuation using an isomorphism and one for changing the type of a continuation using an endomorphism, we obtain the definition of `map` for the `Control.Categorical.Functor` instance for `Continuation m`, which is an endofunctor over the category `EndoIso`.
+
+Finally, `Control.PseudoInverseCategory` contains these instances:
+
+```Haskell
+instance Applicative m => Control.Categorical.Functor EndoIso EndoIso (Html m)
+instance Applicative m => Control.Categorical.Functor EndoIso EndoIso (Prop m)
+```
+
+These instances say that `Html m` and `Prop m` are also (like `Continuation m`) endofunctors of the `EndoIso` category for any `Applicative m`. These can be viewed as corollaries of the similar functor instance for `Continuation m`. To change the type of an `Html m` or a `Prop m` means to change the view model type which the event handlers assume. In other words it means to change the type of the continuations which the event handlers produce.
