@@ -78,7 +78,7 @@ class Category a => PseudoInverseCategory a where
   piright :: a x y -> a y y
 
   -- | Pseudo-invert a morphism. The pseudo-inverse of a morphism may or may not
-  --   be its inverse. @f@ is the inverse of @g@ means that @f.g = id = g.f@.
+  --   be its inverse. @f@ is the inverse of @g@ means that @f.g = id@ and @g.f = id@.
   --   If @f@ has an inverse, then @piinverse f@ may or may not be the inverse
   --   of @f@.
   piinverse :: a x y -> a y x
