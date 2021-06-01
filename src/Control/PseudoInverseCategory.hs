@@ -31,7 +31,7 @@ import           Data.Bifunctor              (bimap, first, second)
 import           Data.Functor.Identity       (Identity (..))
 import           Data.Tuple                  (swap)
 import           Shpadoinkle.Continuation    (Continuation (..), contIso, mapC)
-import           Shpadoinkle.Core            (Html (..), Prop (..))
+import           Shpadoinkle.Core            (Html (..), Prop (..), Props (..))
 import           Prelude                     hiding (id, (.))
 
 
@@ -239,3 +239,9 @@ instance Applicative m => F.Functor EndoIso EndoIso (Prop m) where
           mapBack (PPotato b)   = PPotato $ fmap (fmap (piapply (piinverse f'))) . b
   {-# INLINE map #-}
 
+
+-- | Props is a functor in the EndoIso category, where the objects are
+--  types and the morphisms are EndoIsos.
+instance Applicative m => F.Functor EndoIso EndoIso (Props m) where
+  map f = piiso Props getProps . fmapA (F.map f) . piiso getProps Props
+  {-# INLINE map #-}

@@ -72,6 +72,7 @@ Finally, `Control.PseudoInverseCategory` contains these instances:
 ```Haskell
 instance Applicative m => Control.Categorical.Functor EndoIso EndoIso (Html m)
 instance Applicative m => Control.Categorical.Functor EndoIso EndoIso (Prop m)
+instance Applicative m => Control.Categorical.Functor EndoIso EndoIso (Props m)
 ```
 
-These instances say that `Html m` and `Prop m` are also (like `Continuation m`) endofunctors of the `EndoIso` category for any `Applicative m`. These can be viewed as corollaries of the similar functor instance for `Continuation m`. To change the type of an `Html m` or a `Prop m` means to change the view model type which the event handlers assume. In other words it means to change the type of the continuations which the event handlers produce.
+These instances say that `Html m`, `Prop m`, and `Props m` are also (like `Continuation m`) endofunctors of the `EndoIso` category for any `Applicative m`. These can be viewed as corollaries of the similar functor instance for `Continuation m`. To change the type of an `Html m` or a `Prop m` or a `Props m` means to change the view model type which the event handlers assume. In other words it means to change the type of the continuations which the event handlers produce.
